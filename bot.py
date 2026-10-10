@@ -15,7 +15,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import database as db
 
 load_dotenv()
-TOKEN = os.getenv("BOT_TOKEN")
+TOKEN = os.getenv("8993308581:AAHn7lTEd3xamtTw8bVez_i7MR5-XIqAdY4")
 
 # ── Conversation States ───────────────────────────────────────────
 (
