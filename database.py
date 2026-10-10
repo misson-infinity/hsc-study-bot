@@ -6,15 +6,11 @@ DB = "study_plan.db"
 def init_db():
     conn = sqlite3.connect(DB)
     c = conn.cursor()
-
-    # ব্যবহারকারীর সেটিংস
     c.execute('''CREATE TABLE IF NOT EXISTS user_settings (
         user_id     INTEGER PRIMARY KEY,
         deadline    TEXT,
         study_hours INTEGER DEFAULT 12
     )''')
-
-    # প্রতিটি Chapter এর তথ্য
     c.execute('''CREATE TABLE IF NOT EXISTS chapters (
         id                  INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id             INTEGER,
@@ -31,8 +27,6 @@ def init_db():
         exam_done           INTEGER DEFAULT 0,
         status              TEXT DEFAULT 'pending'
     )''')
-
-    # প্রতিদিনের Tasks
     c.execute('''CREATE TABLE IF NOT EXISTS daily_tasks (
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id     INTEGER,
@@ -42,11 +36,8 @@ def init_db():
         completed   INTEGER DEFAULT 0,
         carried     INTEGER DEFAULT 0
     )''')
-
     conn.commit()
     conn.close()
-
-# ─── User Settings ───────────────────────────────────────────────
 
 def save_deadline(user_id, deadline_str):
     conn = sqlite3.connect(DB)
@@ -65,8 +56,6 @@ def get_settings(user_id):
     row = c.fetchone()
     conn.close()
     return row
-
-# ─── Chapter CRUD ─────────────────────────────────────────────────
 
 def add_chapter(user_id, subject, chapter_name,
                 total_classes, class_time_min, is_big):
@@ -114,10 +103,7 @@ def mark_chapter_done(chapter_id):
     conn.commit()
     conn.close()
 
-# ─── Daily Tasks ──────────────────────────────────────────────────
-
 def save_daily_tasks(user_id, date_str, tasks: list):
-    """tasks = [(chapter_id, task_type), ...]"""
     conn = sqlite3.connect(DB)
     c = conn.cursor()
     for chapter_id, task_type in tasks:
@@ -144,9 +130,7 @@ def get_today_tasks(user_id, date_str):
 def complete_task(task_id, chapter_id, task_type):
     conn = sqlite3.connect(DB)
     c = conn.cursor()
-    # Task mark done
     c.execute("UPDATE daily_tasks SET completed=1 WHERE id=?", (task_id,))
-    # Chapter এর field আপডেট
     field_map = {
         "class":    "completed_classes",
         "note":     "note_done",
@@ -163,7 +147,6 @@ def complete_task(task_id, chapter_id, task_type):
             c.execute(f"UPDATE chapters SET {field_map[task_type]}=1 WHERE id=?",
                       (chapter_id,))
     conn.commit()
-    # exam_ready চেক
     c.execute('''SELECT practice_done, completed_classes, total_classes
                  FROM chapters WHERE id=?''', (chapter_id,))
     row = c.fetchone()
@@ -173,7 +156,6 @@ def complete_task(task_id, chapter_id, task_type):
     conn.close()
 
 def carry_incomplete_tasks(user_id, old_date, new_date):
-    """অসম্পূর্ণ task গুলো পরের দিনে add করো"""
     conn = sqlite3.connect(DB)
     c = conn.cursor()
     c.execute('''SELECT chapter_id, task_type FROM daily_tasks
@@ -191,8 +173,6 @@ def carry_incomplete_tasks(user_id, old_date, new_date):
     conn.commit()
     conn.close()
     return len(rows)
-
-# ─── Progress ─────────────────────────────────────────────────────
 
 def get_progress(user_id):
     conn = sqlite3.connect(DB)
